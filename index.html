@@ -3,91 +3,121 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mural de Trocas - Copa 2026</title>
+  <title>Álbum Virtual Copa 2026</title>
   
+  <!-- Carregando o React -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
-    .container { max-width: 800px; margin: 0 auto; }
-    h1 { text-align: center; color: #1a365d; }
-    .card-troca { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid #3498db; }
-    .header-card { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
-    .nome { font-size: 20px; font-weight: bold; color: #2c3e50; }
-    .btn-zap { background: #25D366; color: white; text-decoration: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px; }
-    .secao { margin-bottom: 10px; }
-    .titulo-secao { font-size: 14px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
-    .repetidas .titulo-secao { color: #27ae60; }
-    .faltantes .titulo-secao { color: #e74c3c; }
-    .badge { display: inline-block; background: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 13px; margin: 2px; border: 1px solid #bdc3c7; }
+    body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; }
+    .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #1a365d; margin-bottom: 30px; }
+    .painel { display: flex; justify-content: space-between; align-items: center; background: #eef2f5; padding: 20px; border-radius: 10px; margin-bottom: 30px; }
+    .btn-pacote { background: #e74c3c; color: white; border: none; padding: 12px 25px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .btn-pacote:hover { background: #c0392b; transform: scale(1.05); }
+    .pacotinho-area { background: #fff3cd; padding: 25px; border-radius: 12px; border: 2px dashed #f1c40f; margin-bottom: 30px; text-align: center; }
+    .grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .card { width: 85px; height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 8px; text-align: center; font-size: 11px; transition: 0.3s; }
+    .card strong { font-size: 18px; margin-bottom: 5px; }
+    .falta { background: #f8f9fa; border: 1px dashed #dee2e6; color: #adb5bd; }
+    .tenho { background: #e8f8f5; border: 2px solid #2ecc71; color: #27ae60; box-shadow: 0 4px 6px rgba(46, 204, 113, 0.2); }
+    .nova { animation: pular 0.5s ease-out; background: linear-gradient(135deg, #f1c40f, #f39c12); color: white; font-weight: bold; box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
+    .btn-fechar { margin-top: 20px; padding: 10px 20px; background: #2c3e50; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    @keyframes pular { 0% { transform: scale(0); } 70% { transform: scale(1.1); } 100% { transform: scale(1); } }
   </style>
 </head>
 <body>
+
   <div id="root"></div>
 
   <script type="text/babel">
     const { useState, useEffect } = React;
 
-    // COLE AQUI A URL DO SEU APPS SCRIPT GERADA NO PASSO 1
-    const GOOGLE_SHEETS_API = 'COLE_SUA_URL_AQUI';
+    // API com as mais de 1000 figurinhas da Copa de 2026
+    const API_URL = 'https://raw.githubusercontent.com/danieltartaro/sticker-swap/main/data/raw/panini-wc-2026-catalog.json';
 
     function App() {
-      const [colecionadores, setColecionadores] = useState([]);
+      const [album, setAlbum] = useState([]);
       const [loading, setLoading] = useState(true);
+      const [figurinhasObtidas, setFigurinhasObtidas] = useState(new Set());
+      const [pacotinhoAtual, setPacotinhoAtual] = useState([]);
 
+      // Busca o catálogo oficial no GitHub
       useEffect(() => {
-        fetch(GOOGLE_SHEETS_API)
+        fetch(API_URL)
           .then(res => res.json())
           .then(data => {
-            setColecionadores(data);
-            setLoading(false);
-          })
-          .catch(err => {
-            console.error(err);
+            setAlbum(data);
             setLoading(false);
           });
+
+        // Tenta puxar se ele já tinha figurinhas salvas no celular/computador
+        const salvas = localStorage.getItem('albumFilhote2026');
+        if (salvas) setFigurinhasObtidas(new Set(JSON.parse(salvas)));
       }, []);
 
-      if (loading) return <h2 style={{textAlign: 'center'}}>Buscando colecionadores na região... 🔍</h2>;
+      // Salva automaticamente cada figurinha nova
+      useEffect(() => {
+        if (figurinhasObtidas.size > 0) {
+          localStorage.setItem('albumFilhote2026', JSON.stringify([...figurinhasObtidas]));
+        }
+      }, [figurinhasObtidas]);
+
+      // Sorteia 5 figurinhas aleatórias do banco de dados
+      const abrirPacotinho = () => {
+        const novas = [];
+        for (let i = 0; i < 5; i++) {
+          const sorteada = album[Math.floor(Math.random() * album.length)];
+          novas.push(sorteada);
+        }
+        setPacotinhoAtual(novas);
+        setFigurinhasObtidas(prev => new Set([...prev, ...novas.map(f => f.code)]));
+      };
+
+      if (loading) return <h2 style={{textAlign: 'center', marginTop: '50px'}}>Carregando o estádio... ⚽</h2>;
 
       return (
         <div className="container">
-          <h1>Mural de Trocas ⚽</h1>
+          <h1>Álbum Virtual da Copa 2026 🏆</h1>
           
-          {colecionadores.map((pessoa, index) => (
-            <div key={index} className="card-troca">
-              <div className="header-card">
-                <span className="nome">{pessoa.Nome}</span>
-                <a 
-                  href={`https://wa.me/55${pessoa.WhatsApp.replace(/\D/g, '')}?text=Opa ${pessoa.Nome}, vi no Mural que você tem figurinhas repetidas! Bora trocar?`} 
-                  target="_blank" 
-                  className="btn-zap"
-                >
-                  WhatsApp
-                </a>
-              </div>
+          <div className="painel">
+            <h2>Completado: {figurinhasObtidas.size} de {album.length}</h2>
+            <button className="btn-pacote" onClick={abrirPacotinho}>
+              🎁 Abrir Pacotinho (5)
+            </button>
+          </div>
 
-              <div className="secao repetidas">
-                <div className="titulo-secao">Disponíveis para Troca (Repetidas):</div>
-                <div>
-                  {pessoa.Repetidas.split(',').map(fig => fig.trim()).map(fig => (
-                    <span key={fig} className="badge">{fig}</span>
-                  ))}
-                </div>
+          {pacotinhoAtual.length > 0 && (
+            <div className="pacotinho-area">
+              <h3>Você tirou no pacotinho:</h3>
+              <div className="grid">
+                {pacotinhoAtual.map((f, i) => (
+                  <div key={i} className="card nova">
+                    <strong>{f.code}</strong>
+                    <span>{f.name}</span>
+                  </div>
+                ))}
               </div>
-
-              <div className="secao faltantes">
-                <div className="titulo-secao">Procura (Faltantes):</div>
-                <div>
-                  {pessoa.Faltantes.split(',').map(fig => fig.trim()).map(fig => (
-                    <span key={fig} className="badge">{fig}</span>
-                  ))}
-                </div>
-              </div>
+              <button className="btn-fechar" onClick={() => setPacotinhoAtual([])}>
+                Colar no Álbum
+              </button>
             </div>
-          ))}
+          )}
+
+          <h3 style={{ color: '#2c3e50', borderBottom: '2px solid #ecf0f1', paddingBottom: '10px' }}>O Álbum</h3>
+          <div className="grid">
+            {album.map((figurinha) => {
+              const tenho = figurinhasObtidas.has(figurinha.code);
+              return (
+                <div key={figurinha.code} className={`card ${tenho ? 'tenho' : 'falta'}`}>
+                  <strong>{figurinha.code}</strong>
+                  {tenho && <span>{figurinha.name}</span>}
+                </div>
+              );
+            })}
+          </div>
         </div>
       );
     }
