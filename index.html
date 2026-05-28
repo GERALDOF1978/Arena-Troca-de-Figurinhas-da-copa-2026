@@ -49,13 +49,40 @@
         fetch(API_URL)
           .then(res => res.json())
           .then(data => {
-            setAlbum(data);
+            // 1. Vamos ver no F12 o formato exato que o GitHub enviou
+            console.log("Dados brutos do GitHub:", data);
+
+            let listaFigurinhas = [];
+
+            // 2. Lógica para extrair apenas o Array, não importa a estrutura do JSON
+            if (Array.isArray(data)) {
+              // Se já vier como uma lista limpa
+              listaFigurinhas = data;
+            } else if (data && data.stickers) {
+              // Se a lista estiver dentro de uma propriedade "stickers"
+              listaFigurinhas = data.stickers;
+            } else if (data && data.data) {
+              // Se a lista estiver dentro de uma propriedade "data"
+              listaFigurinhas = data.data;
+            } else if (data && data.selecoes) {
+              // Se estiver dividido por seleções, juntamos todas em uma lista só (flat)
+              listaFigurinhas = data.selecoes.flatMap(selecao => selecao.figurinhas || []);
+            } else {
+              // Tenta procurar e extrair qualquer Array que estiver dentro do objeto principal
+              listaFigurinhas = Object.values(data).find(val => Array.isArray(val)) || [];
+            }
+
+            // 3. Agora sim, salvamos APENAS a lista no estado
+            setAlbum(listaFigurinhas);
+            setLoading(false);
+          })
+          .catch(error => {
+            console.error("Erro ao buscar a API:", error);
             setLoading(false);
           });
 
-        // Tenta puxar se ele já tinha figurinhas salvas no celular/computador
-        const salvas = localStorage.getItem('albumFilhote2026');
-        if (salvas) setFigurinhasObtidas(new Set(JSON.parse(salvas)));
+        const salvas = localStorage.getItem('albumAtleta2026');
+        if (salvas) setObtidas(new Set(JSON.parse(salvas)));
       }, []);
 
       // Salva automaticamente cada figurinha nova
