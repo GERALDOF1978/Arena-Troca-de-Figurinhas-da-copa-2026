@@ -158,4 +158,54 @@
                   const urlImagem = `https://ui-avatars.com/api/?name=${encodeURIComponent(f.name || f.code)}&background=random&color=fff&size=100&bold=true`;
                   return (
                     <div key={i} className="card nova">
-                      <img src={urlImagem} alt={f.name} className="foto-jogador"
+                      <img src={urlImagem} alt={f.name} className="foto-jogador" />
+                      <strong>{f.code}</strong>
+                      <span>{f.name}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <button 
+                onClick={() => setPacote([])} 
+                style={{marginTop: '20px', padding: '10px 20px', background: 'transparent', color: '#ffd700', border: '1px solid #ffd700', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold'}}
+              >
+                Guardar no Álbum
+              </button>
+            </div>
+          )}
+
+          <div className="filtros">
+            <button className={`btn-filtro ${filtro === 'todas' ? 'ativo' : ''}`} onClick={() => setFiltro('todas')}>Todas</button>
+            <button className={`btn-filtro ${filtro === 'tenho' ? 'ativo' : ''}`} onClick={() => setFiltro('tenho')}>Já Tenho</button>
+            <button className={`btn-filtro ${filtro === 'faltam' ? 'ativo' : ''}`} onClick={() => setFiltro('faltam')}>Faltam</button>
+          </div>
+
+          {/* ÁLBUM PRINCIPAL (Mostra avatar apenas se tiver a figurinha) */}
+          <div className="grid">
+            {figurinhasFiltradas.map((fig) => {
+              const tenho = obtidas.has(fig.code);
+              const nomeParaAvatar = fig.name || fig.code;
+              const urlImagem = `https://ui-avatars.com/api/?name=${encodeURIComponent(nomeParaAvatar)}&background=random&color=fff&size=100&bold=true`;
+
+              return (
+                <div key={fig.code} className={`card ${tenho ? 'tenho' : 'falta'}`}>
+                  {tenho ? (
+                    <img src={urlImagem} alt={fig.name} className="foto-jogador" />
+                  ) : (
+                    <div className="misterio">❓</div>
+                  )}
+                  <strong>{fig.code}</strong>
+                  <span>{fig.name}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
